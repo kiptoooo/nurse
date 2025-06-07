@@ -62,13 +62,13 @@ async def chat(chat_req: ChatRequest):
     if any(kw in low for kw in ["order drug", "buy drug", "order meds", "purchase drug"]):
         return {
             "reply": (
-                "🛒 To order drugs on Zendawa:\n"
-                "1. Go to our Marketplace: https://zendawa.africa/\n"
+                "🛒 To order drugs on NCK Helper:\n"
+                "1. Go to our Marketplace: https://nck-helper.com/\n"
                 "2. Browse or search for the medications you need.\n"
                 "3. Add your selections to the cart.\n"
                 "4. Proceed to checkout and enter delivery details.\n"
                 "5. Complete payment and confirm your order.\n\n"
-                "👉 Start ordering here: https://zendawa.africa/"
+                "👉 Start ordering here: https://nck-helper.com/"
             )
         }
 
@@ -76,22 +76,23 @@ async def chat(chat_req: ChatRequest):
     if any(kw in low for kw in ["consultation", "consult", "teleconsult", "book a doctor"]):
         return {
             "reply": (
-                "💬 To book a consultation with a doctor:\n"
-                "1. Visit: https://zendawa.africa/\n"
-                "2. Sign in or create a Zendawa account.\n"
+                "💬 To book a consultation with a doctor on NCK Helper:\n"
+                "1. Visit: https://nck-helper.com/\n"
+                "2. Sign in or create a NCK Helper account.\n"
                 "3. Select “Teleconsultation” and pick a specialty.\n"
                 "4. Choose a date, time, and consultation mode (chat/video).\n"
                 "5. Confirm and await your appointment link.\n\n"
-                "👉 Book a consultation now: https://zendawa.africa/"
+                "👉 Book a consultation now: https://nck-helper.com/"
             )
         }
+
 
     # ——— Handle Known Key Staff ——————————————————————
     if any(name in low for name in ["achoka", "chege", "vincent chebon"]):
         name_responses = {
-            "achoka": "Dr. Victor Achoka is a co-founder of Zendawa and a licensed pharmacist with training in quality control and business leadership.",
-            "chege": "Wilfred Chege is the CEO and co-founder of Zendawa, leading the mission to transform healthcare access in Africa.",
-            "vincent chebon": "Vincent Chebon is the Chief Technology Officer at Zendawa, driving technical innovation and product development."
+            "Alban": "The co-founder of NCK-helper",
+            "Bethuel": "The co-founder of NCK-helper",
+            "Felix": "The co-founder of NCK-helper"
         }
         for name in name_responses:
             if name in low:
@@ -105,8 +106,8 @@ async def chat(chat_req: ChatRequest):
     if sims[best_idx] < 0.3:
         return {
             "reply": (
-                "I'm here to help with Zendawa’s telepharmacy services. "
-                "Please ask about consultations, drug ordering, pharmacy onboarding, or healthcare-related support."
+                "I'm here to help with NCK-services. "
+                "Please ask about  healthcare-related issues."
             )
         }
 
@@ -114,14 +115,14 @@ async def chat(chat_req: ChatRequest):
     matched_a = answers[best_idx]
 
     system_prompt = (
-        "You are Zendawa Assistant, a helpful AI designed to support users with accurate and friendly information "
-        "about Zendawa — a Kenyan telepharmacy platform offering services like drug ordering, pharmacy onboarding, "
-        "teleconsultations, and healthcare logistics.\n\n"
-        "If a question falls outside Zendawa’s scope (e.g., about cars, sports, or unrelated topics), kindly guide "
-        "the user with a gentle message like:\n"
-        "“I'm here to help with questions related to Zendawa’s telepharmacy services. Feel free to ask anything "
-        "about our platform or healthcare-related support.”\n\n"
-        f"To assist you better, here’s the most relevant information from Zendawa’s FAQ:\nQ: {matched_q}\nA: {matched_a}"
+            "You are NCK Helper, a helpful AI designed to support users with accurate and friendly information "
+            "about NCK — a platform offering services like drug ordering, pharmacy onboarding, "
+            "teleconsultations, and healthcare logistics.\n\n"
+            "If a question falls outside NCK’s scope (e.g., about cars, sports, or unrelated topics), kindly guide "
+            "the user with a gentle message like:\n"
+            "“I'm here to help with questions related to NCK’s telepharmacy services. Feel free to ask anything "
+            "about our platform or healthcare-related support.”\n\n"
+            f"To assist you better, here’s the most relevant information from NCK’s FAQ:\nQ: {matched_q}\nA: {matched_a}"
     )
 
     prompt_messages = [{"role": "system", "content": system_prompt}] + [msg.dict() for msg in chat_req.messages]
@@ -144,3 +145,7 @@ async def chat(chat_req: ChatRequest):
 @app.get("/", response_class=HTMLResponse)
 def get_ui():
     return Path("static/index.html").read_text()
+
+
+
+
