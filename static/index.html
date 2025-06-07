@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zendawa Assistant</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4fef4;
+    }
+
+    #chat-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #2c7a36;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+
+    #chat-container {
+      display: none;
+      flex-direction: column;
+      position: fixed;
+      bottom: 100px;
+      right: 24px;
+      width: min(90vw, 450px);
+      height: min(90vh, 600px);
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      border: 2px solid #2c7a36;
+      z-index: 999;
+    }
+
+
+    #chat-header {
+      background-color: #2c7a36;
+      color: white;
+      padding: 16px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    #chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      padding: 10px 12px;
+      border-radius: 8px;
+      max-width: 85%;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .user {
+      background-color: #e6f4ea;
+      align-self: flex-end;
+    }
+
+    .bot {
+      background-color: #edfbea;
+      align-self: flex-start;
+    }
+
+    .loading {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .loading span {
+      width: 6px;
+      height: 6px;
+      background-color: #2c7a36;
+      border-radius: 50%;
+      animation: bounce 1.2s infinite ease-in-out both;
+    }
+
+    .loading span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .loading span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+
+    #chat-form {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    #chat-send {
+      background-color: #2c7a36;
+      color: white;
+      border: none;
+      margin-left: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #chat-controls {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-top: 1px solid #ddd;
+      background: #f9f9f9;
+    }
+
+    #chat-controls button {
+      background: none;
+      border: none;
+      color: #2c7a36;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    @media screen and (max-width: 480px) {
+      #chat-container {
+        width: 95%;
+        right: 2.5%;
+        bottom: 80px;
+      }
+
+      #chat-toggle {
+        bottom: 10px;
+        right: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button id="chat-toggle">💬</button>
+
+  <div id="chat-container">
+    <div id="chat-header">Zendawa Assistant</div>
+    <div id="chat-messages"></div>
+    <div id="chat-controls">
+      <button id="clear-btn">Clear</button>
+      <button id="reset-btn">Reset</button>
+    </div>
+    <form id="chat-form">
+      <input type="text" id="chat-input" placeholder="Ask a question..." required />
+      <button type="submit" id="chat-send">Send</button>
+    </form>
+  </div>
+
+  <script>
+    const chatToggle = document.getElementById("chat-toggle");
+    const chatContainer = document.getElementById("chat-container");
+    const chatMessages = document.getElementById("chat-messages");
+    const chatForm = document.getElementById("chat-form");
+    const chatInput = document.getElementById("chat-input");
+    const clearBtn = document.getElementById("clear-btn");
+    const resetBtn = document.getElementById("reset-btn");
+
+    let history = [];
+
+    chatToggle.onclick = () => {
+      chatContainer.style.display = chatContainer.style.display === "none" ? "flex" : "none";
+    };
+
+    clearBtn.onclick = () => {
+      chatMessages.innerHTML = "";
+      history = [];
+    };
+
+    resetBtn.onclick = () => {
+      chatMessages.innerHTML = "";
+      history = [];
+      alert("Chat reset.");
+    };
+
+    function appendMessage(role, content) {
+      const messageDiv = document.createElement("div");
+      messageDiv.className = `message ${role}`;
+      messageDiv.innerHTML = marked.parse(content); // Markdown render
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    chatForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const userText = chatInput.value.trim();
+      if (!userText) return;
+
+      appendMessage("user", userText);
+      chatInput.value = "";
+
+      const loadingDiv = document.createElement("div");
+      loadingDiv.className = "message bot loading";
+      loadingDiv.innerHTML = "<span></span><span></span><span></span>";
+      chatMessages.appendChild(loadingDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      try {
+        const res = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [...history, { role: "user", content: userText }],
+          }),
+        });
+
+        const data = await res.json();
+        history.push({ role: "user", content: userText });
+        history.push({ role: "assistant", content: data.reply });
+
+        loadingDiv.remove();
+        appendMessage("bot", data.reply);
+      } catch (err) {
+        loadingDiv.remove();
+        appendMessage("bot", "❌ Sorry, something went wrong.");
+      }
+    };
+
+    // Load markdown parser
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/marked/marked.min.js";
+    document.head.appendChild(script);
+  </script>
+</body>
+</html>
